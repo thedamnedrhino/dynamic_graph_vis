@@ -1,4 +1,23 @@
+def get_test_graph():
+	f = GraphFactory()
+	n1 = f.new_node(1, 1)
+	n2 = f.new_node(2, 1)
+	f.add_edge(1, 2)
+	return f.g
 
+def test():
+	g = get_test_graph()
+	print(g.nodes)
+	print(g.edges)
+	g.step()
+	print(g.nodes)
+	n1.activate()
+	print(g.nodes)
+	g.step()
+	print(g.nodes)
+	g.remove_edge(1, 2)
+	g.step()
+	print(g.nodes)
 
 class GraphFactory:
 	def __init__(self):
@@ -12,23 +31,6 @@ class GraphFactory:
 	def add_edge(self, u, v):
 		return self.g.add_edge(u, v)
 
-def test():
-	f = GraphFactory()
-	n1 = f.new_node(1, 1)
-	n2 = f.new_node(2, 1)
-	f.add_edge(1, 2)
-	g = f.g
-	print(g.nodes)
-	print(g.edges)
-	g.step()
-	print(g.nodes)
-	n1.activate()
-	print(g.nodes)
-	g.step()
-	print(g.nodes)
-	g.remove_edge(1, 2)
-	g.step()
-	print(g.nodes)
 
 class Graph:
 	def __init__(self, nodes={}):
@@ -55,6 +57,12 @@ class Graph:
 			node.send()
 		for node in self.nodes.values():
 			node.receive()
+
+	def get_nodes(self):
+		return self.nodes.values()
+
+	def get_edges(self):
+		return self.edges.values()
 
 
 class Node:
