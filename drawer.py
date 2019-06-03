@@ -28,31 +28,76 @@ for i in range(num_plots):
     pylab.draw()
     pause(2)
 """
+
+class DynamicCanvas:
+	def __init__(self, drawer=None):
+		self.drawer = drawer
+
+	def start(self):
+		pylab.ion()
+		pylab.show()
+		self.drawer.start()
+		self.draw_and_wait()
+
+	def step(self, new_graph, removes, updates):
+		self.drawer.step(new_graph, removes, updates)
+		self.draw_and_wait()
+
+	def draw_and_wait(self):
+		pylab.draw()
+		plt.waitforbuttonpress()
+
 class DynamicDrawer:
+	INVISIBLE_COLOR = 'w'
+
 	def __init__(self, base_graph):
 		self.graph = base_graph
 		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
 		self.pos = nx.spring_layout(self.nx_graph)
 		self.edge_color = 'b'
+		self.active_node_color = 'green'
+		self.inactive_node_color = 'grey'
 
 	def start(self):
 		nx.draw_networkx_nodes(self.nx_graph, self.pos)
 		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=self.nx_graph.edges(), edge_color='w')
 		edgelist = [(e.u.l, e.v.l) for e in self.graph.get_edges()]
 		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=edgelist, edge_color=self.edge_color)
+		self.color_nodes(self.graph.get_nodes())
+
+	def step(self, new_graph, deletes, additions):
+		self.color_nodes(new_graph.get_nodes())
+		self.add_edges(additions)
+		self.delete_edges(deletes)
+		self.finalize(new_graph, deletes, additions)
+
+	def color_nodes(self, nodes):
+		active, inactive = [], []
+		for node in nodes:
+			l = active if node.active else inactive
+			l.append(node.l)
+		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=active, node_color=self.active_node_color)
+		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=inactive, node_color=self.inactive_node_color)
+
+	def add_edges(self, edges):
+		self.draw_edges(edges, self.edge_color)
+
+	def remove_edges(self, edges):
+		self.draw_edges(edges, type(self).INVISIBLE_COLOR)
+
+class DynamicSubscriptionDrawer:
+	pass
 
 def test1():
 	pylab.ion()
 	pylab.show()
 	g = graph.get_test_graph()
 	d = DynamicDrawer(g)
-	d.start()
-	pylab.draw()
-	plt.waitforbuttonpress()
+	c = DynamicCanvas(d)
+	c.start()
 	d.edge_color = 'y'
-	d.start()
-	pylab.draw()
-	plt.waitforbuttonpress()
+	g.get_node(1).activate()
+	c.start()
 
 
 

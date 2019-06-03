@@ -58,6 +58,14 @@ class Graph:
 		for node in self.nodes.values():
 			node.receive()
 
+	def activate_node(self, node):
+		self.get_node(node).activate()
+
+	def get_node(self, node):
+		if isinstance(node, Node):
+			return node
+		return self.nodes[node]
+
 	def get_nodes(self):
 		return self.nodes.values()
 
@@ -114,11 +122,21 @@ class SubscriptionNode:
 		self.lamb = lamb
 		self.time = 0
 
+	def send(self):
+		super(type(self), self).send()
+		self.time += 1
+
 	def receive(self):
-		self.t += 1
 		if self.t >= self.lamb:
 			self.active = False
 		super(type(self), self).receive()
+		if not self.active:
+			self.time = 0
+
+	def remaining_subscription(self):
+		if not self.active:
+			raise Exception('node {} is not subscribed'.format(self.l))
+		return self.lamb - self.time
 
 
 class Edge:
