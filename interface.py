@@ -9,6 +9,7 @@ class VisualInterface:
 		self.n = n
 
 	def start(self):
+		self.graph.start()
 		self.canvas.start()
 		self.loop()
 

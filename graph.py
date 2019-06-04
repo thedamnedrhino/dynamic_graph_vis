@@ -52,9 +52,16 @@ class Graph:
 		edge.delete()
 		del self.edges[(u, v)]
 
+	def start(self):
+		self._send()
 	def step(self):
+		self._receive()
+		self._send()
+
+	def _send(self):
 		for node in self.nodes.values():
 			node.send()
+	def _receive(self):
 		for node in self.nodes.values():
 			node.receive()
 
@@ -77,7 +84,6 @@ class Node:
 	def __init__(self, l, threshold, out_edges=[], in_edges=[]):
 		self.l = l
 		self.threshold = threshold
-		self.receiving = 0
 		self.out_edges = set(out_edges)
 		self.in_edges = set(in_edges)
 		self.active = False
@@ -91,13 +97,14 @@ class Node:
 	def receive(self):
 		if self.active:
 			return
-		self.receiving = len([e for e in self.in_edges if e.active])
-		self.active = (self.receiving >= self.threshold)
+		self.active = (self.receiving() >= self.threshold)
+
+	def receiving(self):
+		return len([e for e in self.in_edges if e.active])
 
 	def send(self):
-		if self.active:
-			for e in self.out_edges:
-				e.activate()
+		for e in self.out_edges:
+			e.activate() if self.active else e.deactivate()
 
 	def add_in_edge(self, edge):
 		self.in_edges.add(edge)
@@ -112,6 +119,9 @@ class Node:
 			self.in_edges.delete(edge)
 		else:
 			raise Exception('Node "{}" does not have edge "{}"'.format(self, edge))
+
+	def get_displayed_attributes(self):
+		return [('threshold', str(self.threshold)), ('receiving', str(self.receiving()))]
 
 	def __repr__(self):
 		return "(Node, label: {}, threshold: {}, active: {})".format(self.l, self.threshold, self.active)
@@ -135,8 +145,12 @@ class SubscriptionNode(Node):
 
 	def remaining_subscription(self):
 		if not self.active:
-			raise Exception('node {} is not subscribed'.format(self.l))
+			return 0
 		return self.lamb - self.time
+
+	def get_displayed_attributes(self):
+		base = super(type(self), self).get_displayed_attributes()
+		return base + [('remaining', str(self.remaining_subscription())), ('lambda', str(self.lamb))]
 
 
 class Edge:
