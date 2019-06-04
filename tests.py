@@ -7,8 +7,7 @@ class VisualSubscriptionTest:
 	def __init__(self, test_set=0):
 		self.i = test_set
 		self.graph = self.create_graph()
-		self.drawer = self.create_drawer(self.graph)
-		self.canvas = self.create_canvas(self.drawer)
+		self.canvas = self.create_canvas(self.graph)
 		self.interface = self.create_interface(self.graph, self.canvas, self.edge_adds(self.i), self.edge_deletes(self.i))
 
 	def test(self):
@@ -19,7 +18,8 @@ class VisualSubscriptionTest:
 	def create_interface(self, graph, canvas, edge_adds, edge_deletes):
 		return interface.VisualInterface(canvas, graph, edge_adds, edge_deletes)
 
-	def create_canvas(self, d):
+	def create_canvas(self, graph):
+		d = self.create_drawer(graph)
 		return drawer.DynamicCanvas(d)
 
 	def create_drawer(self, graph):
