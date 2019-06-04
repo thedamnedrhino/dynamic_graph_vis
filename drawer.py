@@ -39,8 +39,8 @@ class DynamicCanvas:
 		self.drawer.start()
 		self.draw_and_wait()
 
-	def step(self, new_graph, removes, updates):
-		self.drawer.step(new_graph, removes, updates)
+	def step(self, new_graph, adds, deletes):
+		self.drawer.step(new_graph, adds, deletes)
 		self.draw_and_wait()
 
 	def draw_and_wait(self):
@@ -48,30 +48,34 @@ class DynamicCanvas:
 		plt.waitforbuttonpress()
 
 class DynamicDrawer:
-	INVISIBLE_COLOR = 'w'
+	INVISIBLE = 'w'
+	GREY = '0.5'
 
 	def __init__(self, base_graph):
 		self.graph = base_graph
 		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
 		self.pos = nx.spring_layout(self.nx_graph)
 		self.edge_color = 'b'
-		self.active_node_color = 'green'
-		self.inactive_node_color = 'grey'
+		self.active_node_color = 'g'
+		self.inactive_node_color = type(self).GREY
 
 	def start(self):
 		nx.draw_networkx_nodes(self.nx_graph, self.pos)
 		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=self.nx_graph.edges(), edge_color='w')
 		edgelist = [(e.u.l, e.v.l) for e in self.graph.get_edges()]
 		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=edgelist, edge_color=self.edge_color)
-		self.color_nodes(self.graph.get_nodes())
+		self.draw_nodes(self.graph.get_nodes())
 
-	def step(self, new_graph, deletes, additions):
-		self.color_nodes(new_graph.get_nodes())
-		self.add_edges(additions)
+	def step(self, new_graph, adds, deletes):
+		self.draw_nodes(new_graph.get_nodes())
+		self.add_edges(adds)
 		self.delete_edges(deletes)
-		self.finalize(new_graph, deletes, additions)
+		self.finalize(new_graph, adds, deletes)
 
-	def color_nodes(self, nodes):
+	def finalize(self, graph, adds, deletes):
+		pass # TODO add subscription times, etc.
+
+	def draw_nodes(self, nodes):
 		active, inactive = [], []
 		for node in nodes:
 			l = active if node.active else inactive
@@ -82,10 +86,13 @@ class DynamicDrawer:
 	def add_edges(self, edges):
 		self.draw_edges(edges, self.edge_color)
 
-	def remove_edges(self, edges):
-		self.draw_edges(edges, type(self).INVISIBLE_COLOR)
+	def delete_edges(self, edges):
+		self.draw_edges(edges, type(self).INVISIBLE)
 
-class DynamicSubscriptionDrawer:
+	def draw_edges(self, edgelist, color):
+		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist, color)
+
+class DynamicSubscriptionDrawer(DynamicDrawer):
 	pass
 
 def test1():

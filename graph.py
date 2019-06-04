@@ -15,7 +15,7 @@ def test():
 	print(g.nodes)
 	g.step()
 	print(g.nodes)
-	g.remove_edge(1, 2)
+	g.delete_edge(1, 2)
 	g.step()
 	print(g.nodes)
 
@@ -46,10 +46,10 @@ class Graph:
 		self.edges[(u, v)] = edge
 		return edge
 
-	def remove_edge(self, u=None, v=None, edge=None):
+	def delete_edge(self, u=None, v=None, edge=None):
 		if edge is None:
 			edge = self.edges[(u, v)]
-		edge.remove()
+		edge.delete()
 		del self.edges[(u, v)]
 
 	def step(self):
@@ -107,18 +107,18 @@ class Node:
 
 	def edge_cut(self, edge):
 		if edge in self.out_edges:
-			self.out_edges.remove(edge)
+			self.out_edges.delete(edge)
 		elif edge in self.in_edges:
-			self.in_edges.remove(edge)
+			self.in_edges.delete(edge)
 		else:
 			raise Exception('Node "{}" does not have edge "{}"'.format(self, edge))
 
 	def __repr__(self):
-		return "(Node, lab: {}, th: {}, act: {})".format(self.l, self.threshold, self.active)
+		return "(Node, label: {}, threshold: {}, active: {})".format(self.l, self.threshold, self.active)
 
-class SubscriptionNode:
+class SubscriptionNode(Node):
 	def __init__(self, l, threshold, lamb, out_edges=[], in_edges=[]):
-		super(type(self), self).__init__(threshold, out_edges, in_edges)
+		super(type(self), self).__init__(l, threshold, out_edges, in_edges)
 		self.lamb = lamb
 		self.time = 0
 
@@ -127,7 +127,7 @@ class SubscriptionNode:
 		self.time += 1
 
 	def receive(self):
-		if self.t >= self.lamb:
+		if self.time >= self.lamb:
 			self.active = False
 		super(type(self), self).receive()
 		if not self.active:
@@ -154,7 +154,7 @@ class Edge:
 		self.u.add_out_edge(self)
 		self.v.add_in_edge(self)
 
-	def remove(self):
+	def delete(self):
 		self.u.edge_cut(self)
 		self.v.edge_cut(self)
 
