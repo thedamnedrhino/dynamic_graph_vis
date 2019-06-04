@@ -16,5 +16,10 @@ class VisualInterface:
 	def loop(self):
 		while self.i < self.n:
 			self.graph.step()
-			self.canvas.step(self.graph, self.edge_adds[self.i], self.edge_deletes[self.i])
+			self.canvas.step(self.graph, self.adds(i), self.deletes(i))
 			self.i += 1
+
+	def adds(self, i):
+		return self.edge_adds[i] if len(self.edge_adds) > i else []
+	def deletes(self, i):
+		return self.edge_deletes[i] if len(self.edge_deletes) > i else []

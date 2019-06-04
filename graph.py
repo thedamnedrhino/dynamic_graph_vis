@@ -1,3 +1,5 @@
+import random
+
 class GraphFactory:
 	def __init__(self):
 		self.g = Graph()
@@ -20,6 +22,13 @@ class Graph:
 	def add_node(self, node):
 		self.nodes[node.l] = node
 
+	def delete_node(self, node):
+		for edge in node.in_edges.union(node.out_edges):
+			print(node)
+			print(edge)
+			self.delete_edge(edge=edge)
+		del self.nodes[node.l]
+
 	def add_edge(self, u, v):
 		edge = Edge(self.nodes[u], self.nodes[v])
 		self.edges[(u, v)] = edge
@@ -28,8 +37,8 @@ class Graph:
 	def delete_edge(self, u=None, v=None, edge=None):
 		if edge is None:
 			edge = self.edges[(u, v)]
+		del self.edges[(edge.u.l, edge.v.l)]
 		edge.delete()
-		del self.edges[(u, v)]
 
 	def start(self):
 		self._send()
@@ -67,6 +76,12 @@ class Node:
 		self.in_edges = set(in_edges)
 		self.active = False
 
+	def in_degree(self):
+		return len(self.in_edges)
+
+	def out_degree(self):
+		return len(self.out_edges)
+
 	def set_threshold(self, threshold):
 		self.threshold = threshold
 
@@ -96,9 +111,9 @@ class Node:
 
 	def edge_cut(self, edge):
 		if edge in self.out_edges:
-			self.out_edges.delete(edge)
+			self.out_edges.remove(edge)
 		elif edge in self.in_edges:
-			self.in_edges.delete(edge)
+			self.in_edges.remove(edge)
 		else:
 			raise Exception('Node "{}" does not have edge "{}"'.format(self, edge))
 
@@ -166,16 +181,22 @@ class Edge:
 class RandomGraphGenerator:
 	def random_dynamic_subscription(self, num_nodes, lamb, edge_p, add_p, delete_p, initial_active_nodes=1, max_threshold=1000000):
 
-		nodes = {i: SubscriptionNode(i, None, lamb) for i in num_nodes}
+		nodes = {i: SubscriptionNode(i, None, lamb) for i in range(num_nodes)}
 		g = Graph(nodes)
-		for n in random.choices(nodes.values(), k=initial_active_nodes):
+		for n in random.choices(list(nodes.values()), k=initial_active_nodes):
 			n.activate()
-
-		for e in self.random_edges(nodes.keys(), edge_p):
+		edges = self.random_edges(nodes.keys(), edge_p)
+		for e in edges:
 			g.add_edge(*e)
-		for n in nodes:
-			n.set_threshold(random.randint(1, min(n.degree(), max_threshold)))
-		return g, self.random_updates(nodes.keys(), add_p, delete_p)
+		degree0s = []
+		for n in nodes.values():
+			if n.in_degree() is 0:
+				degree0s.append(n)
+				continue
+			n.set_threshold(random.randint(1, min(n.in_degree(), max_threshold) + 1))
+		for n in degree0s:
+			g.delete_node(n)
+		return g, self.random_updates(nodes.keys(), edges, add_p, delete_p)
 
 	def random_edges(self, nodes, p):
 		n = len(nodes)
@@ -185,7 +206,7 @@ class RandomGraphGenerator:
 		deletes = (e for e in edges if self.bern(delete_p))
 		return adds, deletes
 	def bern(self, p):
-		return random.random <= p
+		return random.random() <= p
 
 
 def get_test_graph():
