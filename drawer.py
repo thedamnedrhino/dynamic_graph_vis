@@ -54,7 +54,8 @@ class DynamicDrawer:
 	def __init__(self, base_graph):
 		self.graph = base_graph
 		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
-		self.pos = nx.spring_layout(self.nx_graph)
+		# self.pos = nx.spring_layout(self.nx_graph)
+		self.pos = nx.circular_layout(self.nx_graph)
 		self.edge_color = 'b'
 		self.active_node_color = 'g'
 		self.inactive_node_color = type(self).GREY

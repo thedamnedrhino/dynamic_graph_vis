@@ -26,8 +26,9 @@ class VisualSubscriptionTest:
 		return drawer.DynamicSubscriptionDrawer(graph)
 
 	def create_graph(self):
-		nodes = {l: graph.SubscriptionNode(l, threshold, lamb) for l, threshold, lamb in self.node_data()[self.i]}
-		print(nodes)
+		nodes = {l: graph.SubscriptionNode(l, threshold, lamb) for l, threshold, lamb in self.node_data()[self.i][0]}
+		for n in self.node_data()[self.i][1]:
+			nodes[n].activate()
 		g = graph.Graph(nodes)
 		for u, v in self.edge_data()[self.i][0]:
 			g.add_edge(u, v)
@@ -36,21 +37,22 @@ class VisualSubscriptionTest:
 
 	def node_data(self):
 		"""
-		return: (label, threshold, lambda)
+		return: [([nodes: (label, threshold, lambda)], [initially activated])]
 		"""
 		lamb = 2
-		return [
+		return [(
 				(
 			(1, 4, lamb),
 			(2, 2, lamb),
 			(3, 1, lamb),
 			(4, 3, lamb),
-				),
+				), (1,)
+				)
 				]
 	def edge_data(self):
 		"""
 		coupled to node_data
-		return: (source, destination)
+		return: [([initial: (source, destination)], [adds], [deletes])]
 		"""
 		undirected = [(1, 2), (2, 3), (3, 1), (1, 4), (2, 4), (3, 4)]
 		directed = undirected + [(v, u) for (u, v) in undirected]
