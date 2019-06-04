@@ -1,24 +1,3 @@
-def get_test_graph():
-	f = GraphFactory()
-	n1 = f.new_node(1, 1)
-	n2 = f.new_node(2, 1)
-	f.add_edge(1, 2)
-	return f.g
-
-def test():
-	g = get_test_graph()
-	print(g.nodes)
-	print(g.edges)
-	g.step()
-	print(g.nodes)
-	n1.activate()
-	print(g.nodes)
-	g.step()
-	print(g.nodes)
-	g.delete_edge(1, 2)
-	g.step()
-	print(g.nodes)
-
 class GraphFactory:
 	def __init__(self):
 		self.g = Graph()
@@ -87,6 +66,9 @@ class Node:
 		self.out_edges = set(out_edges)
 		self.in_edges = set(in_edges)
 		self.active = False
+
+	def set_threshold(self, threshold):
+		self.threshold = threshold
 
 	def activate(self):
 		self.active = True
@@ -181,6 +163,51 @@ class Edge:
 	def __repr__(self):
 		return "(Edge: {}-{})".format(self.u.l, self.v.l)
 
+class RandomGraphGenerator:
+	def random_dynamic_subscription(self, num_nodes, lamb, edge_p, add_p, delete_p, initial_active_nodes=1, max_threshold=1000000):
+
+		nodes = {i: SubscriptionNode(i, None, lamb) for i in num_nodes}
+		g = Graph(nodes)
+		for n in random.choices(nodes.values(), k=initial_active_nodes):
+			n.activate()
+
+		for e in self.random_edges(nodes.keys(), edge_p):
+			g.add_edge(*e)
+		for n in nodes:
+			n.set_threshold(random.randint(1, min(n.degree(), max_threshold)))
+		return g, self.random_updates(nodes.keys(), add_p, delete_p)
+
+	def random_edges(self, nodes, p):
+		n = len(nodes)
+		return ((u, v) for u in nodes for v in nodes if self.bern(p))
+	def random_updates(self, nodes, edges, add_p, delete_p):
+		adds = [(u, v) for u in nodes for v in nodes if (u, v) not in edges and self.bern(add_p)]
+		deletes = (e for e in edges if self.bern(delete_p))
+		return adds, deletes
+	def bern(self, p):
+		return random.random <= p
+
+
+def get_test_graph():
+	f = GraphFactory()
+	n1 = f.new_node(1, 1)
+	n2 = f.new_node(2, 1)
+	f.add_edge(1, 2)
+	return f.g
+
+def test():
+	g = get_test_graph()
+	print(g.nodes)
+	print(g.edges)
+	g.step()
+	print(g.nodes)
+	n1.activate()
+	print(g.nodes)
+	g.step()
+	print(g.nodes)
+	g.delete_edge(1, 2)
+	g.step()
+	print(g.nodes)
 
 if __name__ == '__main__':
 	test()
