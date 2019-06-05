@@ -70,8 +70,8 @@ class VisualSubscriptionTest:
 class RandomGraphVisualSubscriptionTest(VisualSubscriptionTest):
 	def __init__(self):
 		self.graph, (edge_adds, edge_deletes) = graph.RandomGraphGenerator().random_dynamic_subscription(10, 2, 0.2, 0.5, 0.5, 3, 2)
-		self.edge_adds = [edge_adds]
-		self.edge_deletes = [edge_deletes]
+		self.edge_adds = [list(edge_adds)]
+		self.edge_deletes = [list(edge_deletes)]
 		self.canvas = self.create_canvas(self.graph)
 		self.interface = self.create_interface(self.graph, self.canvas, self.edge_adds, self.edge_deletes)
 

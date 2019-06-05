@@ -106,14 +106,13 @@ class DynamicDrawer:
 		self.draw_edges(edges, type(self).INVISIBLE)
 
 	def draw_edges(self, edgelist, color):
-		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist, color)
+		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=edgelist, edge_color=color)
 
 class DynamicSubscriptionDrawer(DynamicDrawer):
 	pass
 
 def test1():
 	plt.ion()
-	#plt.show()
 	g = graph.get_test_graph()
 	d = DynamicDrawer(g)
 	c = DynamicCanvas(d)

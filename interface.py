@@ -16,7 +16,7 @@ class VisualInterface:
 	def loop(self):
 		while self.i < self.n:
 			self.graph.step()
-			self.canvas.step(self.graph, self.adds(i), self.deletes(i))
+			self.canvas.step(self.graph, self.adds(self.i), self.deletes(self.i))
 			self.i += 1
 
 	def adds(self, i):
