@@ -1,22 +1,22 @@
 
 class VisualInterface:
-	def __init__(self, canvas, graph, edge_adds, edge_deletes, n=10):
+	def __init__(self, canvas, dynamic_graph, edge_adds, edge_deletes, n=10):
 		self.canvas = canvas
-		self.graph = graph
+		self.dynamic_graph = dynamic_graph
 		self.edge_adds = edge_adds
 		self.edge_deletes = edge_deletes
 		self.i = 0
 		self.n = n
 
 	def start(self):
-		self.graph.start()
+		self.dynamic_graph.start()
 		self.canvas.start()
 		self.loop()
 
 	def loop(self):
 		while self.i < self.n:
-			self.graph.step()
-			self.canvas.step(self.graph, self.adds(self.i), self.deletes(self.i))
+			self.dynamic_graph.step(self.adds(self.i), self.deletes(self.i))
+			self.canvas.step(self.dynamic_graph, self.adds(self.i), self.deletes(self.i))
 			self.i += 1
 
 	def adds(self, i):

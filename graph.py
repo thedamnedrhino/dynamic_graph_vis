@@ -19,6 +19,9 @@ class Graph:
 		self.edges = {}
 
 
+	def is_directed(self):
+		return True
+
 	def add_node(self, node):
 		self.nodes[node.l] = node
 

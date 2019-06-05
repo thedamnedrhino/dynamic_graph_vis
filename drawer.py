@@ -52,46 +52,61 @@ class DynamicDrawer:
 
 	def __init__(self, base_graph):
 		self.graph = base_graph
-		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()]).to_directed()
+		self.old_graph = None
+		self.is_directed = self.graph.is_directed()
+		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
+		if self.is_directed:
+			self.nx_graph = self.nx_graph.to_directed()
 		# self.pos = nx.spring_layout(self.nx_graph)
 		self.pos = nx.circular_layout(self.nx_graph)
 		self.edge_color = 'b'
+		self.uni_color = 'r'
+		self.bi_color = self.edge_color
 		self.active_node_color = 'g'
 		self.inactive_node_color = type(self).GREY
 		self.textboxes = []
 
 	def start(self):
-		self.draw_nodes(self.graph.get_nodes())
-		self.draw_node_attributes(self.graph.get_nodes())
+		self.draw_nodes()
+		self.draw_node_attributes()
 		nx.draw_networkx_labels(self.nx_graph, self.pos)
-		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=self.nx_graph.edges(), edge_color='w')
-		edgelist = [(e.u.l, e.v.l) for e in self.graph.get_edges()]
-		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=edgelist, edge_color=self.edge_color)
+		self.draw_initial_edges()
+		print('graph edges: {}'.format(self.edge_set()))
+
+	def draw_initial_edges(self):
+		self.draw_base()
+		self.draw_edges()
 
 	def step(self, new_graph, adds, deletes):
-		self.draw_nodes(new_graph.get_nodes())
+		print('graph edges: {}'.format(self.edge_set()))
+		self.old_graph = self.graph
+		self.graph = new_graph
+		self.draw_nodes()
+		self.draw_edges()
+		"""
 		self.add_edges(adds)
 		self.delete_edges(deletes)
+		"""
 		self.finalize(new_graph, adds, deletes)
 
 	def finalize(self, graph, adds, deletes):
 		self.clear_figure_texts()
-		self.draw_node_attributes(graph.get_nodes())
+		self.draw_node_attributes()
 
 	def clear_figure_texts(self):
 		for t in self.textboxes:
 			t.set_visible(False)
 
-	def draw_nodes(self, nodes):
+	def draw_nodes(self):
 		active, inactive = [], []
-		for node in nodes:
+		for node in self.nodes():
 			l = active if node.active else inactive
 			l.append(node.l)
 		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=active, node_color=self.active_node_color)
 		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=inactive, node_color=self.inactive_node_color)
 
-	def draw_node_attributes(self, nodes):
-		for node in nodes:
+	def draw_node_attributes(self):
+		for node in self.nodes():
 			attrs = node.get_displayed_attributes()
 			# attrs: [(attr_name, attr_val)]
 			attr_text = "\n".join([": ".join(a) for a in attrs])
@@ -105,7 +120,32 @@ class DynamicDrawer:
 	def delete_edges(self, edges):
 		self.draw_edges(edges, type(self).INVISIBLE)
 
-	def draw_edges(self, edgelist, color):
+	def draw_edges(self):
+		edges = self.edge_set()
+		if not self.is_directed:
+			self.draw_edges_raw(edges, self.edge_color)
+			return
+		complete_edges = set(self.nx_graph.edges())
+		bi_edges = [(u, v) for (u, v) in edges if (v, u) in edges]
+		uni_edges = edges.difference(bi_edges)
+		self.draw_base()
+		if self.old_graph is None:
+			self.draw_edges_raw(uni_edges, self.uni_color)
+			self.draw_edges_raw(bi_edges, self.bi_color)
+
+
+	def edge_set(self):
+		return set([(e.u.l, e.v.l) for e in self.graph.get_edges()])
+	def nodes(self):
+		return self.graph.get_nodes()
+
+	def draw_base(self):
+		"""
+		draws (overwrites) the underlying complete graph with invisible link
+		"""
+		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=self.nx_graph.edges(), edge_color=type(self).INVISIBLE)
+
+	def draw_edges_raw(self, edgelist, color):
 		nx.draw_networkx_edges(self.nx_graph, self.pos, edgelist=edgelist, edge_color=color)
 
 class DynamicSubscriptionDrawer(DynamicDrawer):
