@@ -24,8 +24,6 @@ class Graph:
 
 	def delete_node(self, node):
 		for edge in node.in_edges.union(node.out_edges):
-			print(node)
-			print(edge)
 			self.delete_edge(edge=edge)
 		del self.nodes[node.l]
 
@@ -200,11 +198,13 @@ class RandomGraphGenerator:
 
 	def random_edges(self, nodes, p):
 		n = len(nodes)
-		return ((u, v) for u in nodes for v in nodes if self.bern(p))
+		return [(u, v) for u in nodes for v in nodes if self.bern(p)]
+
 	def random_updates(self, nodes, edges, add_p, delete_p):
 		adds = [(u, v) for u in nodes for v in nodes if (u, v) not in edges and self.bern(add_p)]
-		deletes = (e for e in edges if self.bern(delete_p))
+		deletes = [e for e in edges if self.bern(delete_p)]
 		return adds, deletes
+
 	def bern(self, p):
 		return random.random() <= p
 
