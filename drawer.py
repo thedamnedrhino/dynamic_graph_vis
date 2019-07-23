@@ -99,9 +99,10 @@ class DynamicDrawer:
 		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
 		if self.is_directed:
 			self.nx_graph = self.nx_graph.to_directed()
-		# self.pos = nx.spring_layout(self.nx_graph)
-		pos = pos if not pos is None else nx.spring_layout
-		self.pos = pos(self.nx_graph)
+		#self.pos = nx.spring_layout(self.nx_graph)
+		# pos = pos if not pos is None else nx.spring_layout
+		# self.pos = pos(self.nx_graph)
+		self.pos = pos if not pos is None else nx.spring_layout(self.nx_graph)
 		self.edge_color = 'b'
 		self.uni_color = 'r'
 		self.bi_color = self.edge_color
@@ -136,11 +137,9 @@ class DynamicDrawer:
 	def finalize(self, graph, adds, deletes):
 		if self.dynamic:
 			self.clear_figure_texts()
-		self.draw_node_attributes()
-		self.draw_figure_texts()
+			self.draw_node_attributes()
 
 	def draw_figure_texts(self):
-		print(self.figure_texts)
 		plt.text(1, 1, "\n".join(self.figure_texts), bbox={'facecolor': 'wheat',})
 
 	def clear_figure_texts(self):
@@ -166,7 +165,7 @@ class DynamicDrawer:
 			x, y = self.pos[node.l]
 			# x = x + 0.1 if x < 0.8 else x - 0.3
 			# y = y + 0.2 if y < 0.8 else y - 0.2
-			x = x + 0.1
+			x = x + 0.08
 			y = y + 0.2
 			box = plt.text(x, y, s=attr_text, bbox=dict(facecolor='wheat', alpha=0.5, fill=False),verticalalignment='center')
 			#box = plt.text(x+0.1, y+0.1, s=attr_text, verticalalignment='center')
