@@ -54,6 +54,7 @@ class SubplotCanvas(DynamicCanvas):
 		self.i = 1
 
 	def start(self):
+		self.figure()
 		self.subplot()
 		self.drawer.start()
 
@@ -63,6 +64,10 @@ class SubplotCanvas(DynamicCanvas):
 
 	def finish(self):
 		plt.show()
+
+	def figure(self):
+		base = 5
+		plt.figure(figsize=(self.nrows*base, self.ncols*base))
 
 	def subplot(self):
 		plt.subplot(self.nrows, self.ncols, self.i)
@@ -75,7 +80,7 @@ class DynamicDrawer:
 	INVISIBLE = 'w'
 	GREY = '0.5'
 
-	def __init__(self, base_graph, dynamic=True, pos=nx.circular_layout):
+	def __init__(self, base_graph, dynamic=True, pos=None):
 		self.graph = base_graph
 		self.dynamic = dynamic
 		self.old_graph = None
@@ -84,6 +89,7 @@ class DynamicDrawer:
 		if self.is_directed:
 			self.nx_graph = self.nx_graph.to_directed()
 		# self.pos = nx.spring_layout(self.nx_graph)
+		pos = pos if not pos is None else nx.spring_layout
 		self.pos = pos(self.nx_graph)
 		self.edge_color = 'b'
 		self.uni_color = 'r'
@@ -95,7 +101,6 @@ class DynamicDrawer:
 	def start(self):
 		self.draw_nodes()
 		self.draw_node_attributes()
-		nx.draw_networkx_labels(self.nx_graph, self.pos)
 		self.draw_initial_edges()
 
 	def draw_initial_edges(self):
@@ -106,8 +111,8 @@ class DynamicDrawer:
 		self.old_graph = self.graph
 		self.graph = new_graph if self.dynamic else self.graph
 		self.draw_nodes()
-		if self.dynamic:
-			self.draw_edges()
+		# self.draw_node_attributes()
+		self.draw_edges()
 		self.finalize(new_graph, adds, deletes)
 		"""
 		self.add_edges(adds)
@@ -115,7 +120,8 @@ class DynamicDrawer:
 		"""
 
 	def finalize(self, graph, adds, deletes):
-		self.clear_figure_texts()
+		if self.dynamic:
+			self.clear_figure_texts()
 		self.draw_node_attributes()
 
 	def clear_figure_texts(self):
@@ -129,9 +135,10 @@ class DynamicDrawer:
 			l.append(node.l)
 		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=active, node_color=self.active_node_color)
 		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=inactive, node_color=self.inactive_node_color)
+		self.draw_node_labels()
+
 
 	def draw_node_attributes(self):
-		pass
 		for node in self.nodes():
 			attrs = node.get_displayed_attributes()
 			# attrs: [(attr_name, attr_val)]
@@ -139,6 +146,9 @@ class DynamicDrawer:
 			x, y = self.pos[node.l]
 			box = plt.text(x+0.1, y+0.1, s=attr_text, bbox=dict(facecolor='wheat', alpha=0.5),verticalalignment='center')
 			self.textboxes.append(box)
+
+	def draw_node_labels(self):
+		nx.draw_networkx_labels(self.nx_graph, self.pos)
 
 	def add_edges(self, edges):
 		self.draw_edges(edges, self.edge_color)
