@@ -31,7 +31,7 @@ class VisualSubscriptionTest:
 		nodes = {l: graph.SubscriptionNode(l, threshold, lamb) for l, threshold, lamb in self.node_data()[self.i][0]}
 		for n in self.node_data()[self.i][1]:
 			nodes[n].activate()
-		g = graph.Graph(nodes)
+		g = graph.DynamicGraph(nodes)
 		for u, v in self.edge_data()[self.i][0]:
 			g.add_edge(u, v)
 		return g
@@ -69,7 +69,8 @@ class VisualSubscriptionTest:
 
 class RandomGraphVisualSubscriptionTest(VisualSubscriptionTest):
 	def __init__(self):
-		self.graph, (edge_adds, edge_deletes) = graph.RandomGraphGenerator().random_dynamic_subscription(num_nodes=10, lamb=2, edge_p=0.2, add_p=0.5, delete_p=0.5, initial_active_nodes=3, max_threshold=2)
+		self.graph, (edge_adds, edge_deletes) = graph.RandomGraphGenerator().random_subscription(dynamic=True, num_nodes=10, lamb=2, edge_p=0.2, add_p=0.5, delete_p=0.5, initial_active_nodes=3, max_threshold=2)
+		print('graph edges: {}'.format(self.graph.edges.keys()))
 		self.edge_adds = [list(edge_adds)]
 		print('adds')
 		print(edge_adds)

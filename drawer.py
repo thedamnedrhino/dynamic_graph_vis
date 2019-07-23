@@ -20,14 +20,11 @@ def get_fig():
 
 num_plots = 50;
 plt.show()
-
 for i in range(num_plots):
 
     get_fig()
     plt.draw()
-    pause(2)
 """
-
 class DynamicCanvas:
 	def __init__(self, drawer=None):
 		self.drawer = drawer
@@ -42,23 +39,52 @@ class DynamicCanvas:
 		self.drawer.step(new_graph, adds, deletes)
 		self.draw_and_wait()
 
+	def finish(self):
+		pass
+
 	def draw_and_wait(self):
 		plt.draw()
 		plt.waitforbuttonpress()
+
+class SubplotCanvas(DynamicCanvas):
+	def __init__(self, drawer, nrows, ncols):
+		super(type(self), self).__init__(drawer)
+		self.nrows = nrows
+		self.ncols = ncols
+		self.i = 1
+
+	def start(self):
+		self.subplot()
+		self.drawer.start()
+
+	def step(self, new_graph, adds, deletes):
+		self.subplot()
+		self.drawer.step(new_graph, adds, deletes)
+
+	def finish(self):
+		plt.show()
+
+	def subplot(self):
+		plt.subplot(self.nrows, self.ncols, self.i)
+		self.i += 1
+
+	def draw(self):
+		plt.draw()
 
 class DynamicDrawer:
 	INVISIBLE = 'w'
 	GREY = '0.5'
 
-	def __init__(self, base_graph):
+	def __init__(self, base_graph, dynamic=True, pos=nx.circular_layout):
 		self.graph = base_graph
+		self.dynamic = dynamic
 		self.old_graph = None
 		self.is_directed = self.graph.is_directed()
 		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
 		if self.is_directed:
 			self.nx_graph = self.nx_graph.to_directed()
 		# self.pos = nx.spring_layout(self.nx_graph)
-		self.pos = nx.circular_layout(self.nx_graph)
+		self.pos = pos(self.nx_graph)
 		self.edge_color = 'b'
 		self.uni_color = 'r'
 		self.bi_color = self.edge_color
@@ -71,23 +97,22 @@ class DynamicDrawer:
 		self.draw_node_attributes()
 		nx.draw_networkx_labels(self.nx_graph, self.pos)
 		self.draw_initial_edges()
-		print('graph edges: {}'.format(self.edge_set()))
 
 	def draw_initial_edges(self):
 		self.draw_base()
 		self.draw_edges()
 
-	def step(self, new_graph, adds, deletes):
-		print('graph edges: {}'.format(self.edge_set()))
+	def step(self, new_graph=None, adds=[], deletes=[]):
 		self.old_graph = self.graph
-		self.graph = new_graph
+		self.graph = new_graph if self.dynamic else self.graph
 		self.draw_nodes()
-		self.draw_edges()
+		if self.dynamic:
+			self.draw_edges()
+		self.finalize(new_graph, adds, deletes)
 		"""
 		self.add_edges(adds)
 		self.delete_edges(deletes)
 		"""
-		self.finalize(new_graph, adds, deletes)
 
 	def finalize(self, graph, adds, deletes):
 		self.clear_figure_texts()
@@ -106,6 +131,7 @@ class DynamicDrawer:
 		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=inactive, node_color=self.inactive_node_color)
 
 	def draw_node_attributes(self):
+		pass
 		for node in self.nodes():
 			attrs = node.get_displayed_attributes()
 			# attrs: [(attr_name, attr_val)]
