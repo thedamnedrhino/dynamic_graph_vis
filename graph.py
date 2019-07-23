@@ -153,7 +153,7 @@ class Node:
 			raise Exception('Node "{}" does not have edge "{}"'.format(self, edge))
 
 	def get_displayed_attributes(self):
-		return [('t', str(self.threshold)), ('in', str(self.receiving()))]
+		return {'threshold': str(self.threshold), 'receiving': str(self.receiving())}
 
 	def __repr__(self):
 		return "(Node, label: {}, threshold: {}, active: {})".format(self.l, self.threshold, self.active)
@@ -182,7 +182,8 @@ class SubscriptionNode(Node):
 
 	def get_displayed_attributes(self):
 		base = super(type(self), self).get_displayed_attributes()
-		return base + [('r', str(self.remaining_subscription())), ('λ', str(self.lamb))]
+		base.update({'remaining_lambda': str(self.remaining_subscription()), 'lambda': str(self.lamb)})
+		return base
 
 
 class Edge:

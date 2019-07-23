@@ -5,9 +5,8 @@ import interface
 
 STEPS=5
 
-def create_visual_interface(graph, steps=10):
-	print(steps)
-	return interface.VisualInterfaceFactory().create(graph=graph, n=steps, dynamic=False, display_mode='subplot')
+def create_visual_interface(graph, steps=10, figure_texts=[]):
+	return interface.VisualInterfaceFactory().create(graph=graph, n=steps, dynamic=False, display_mode='subplot', figure_texts=figure_texts)
 
 def draw_from_edges(*edges):
 	g = nx.Graph()
@@ -18,8 +17,8 @@ def draw_from_edges(*edges):
 	nx.draw_networkx_labels(g, pos)
 	plt.show()
 
-def display(graph, steps=10):
-	interface = create_visual_interface(graph, steps=steps)
+def display(graph, steps=10, figure_texts=[]):
+	interface = create_visual_interface(graph, steps=steps, figure_texts=figure_texts)
 	s = graph.get_node('s')
 	interface.start(run=lambda: print(s.active))
 
@@ -31,7 +30,7 @@ def display_subscription_graph(lamb, nodes, active_nodes, edges, steps=10):
 			n.activate()
 	for u, v in edges:
 		g.add_edge(u, v)
-	display(g, steps)
+	display(g, steps, figure_texts=['λ: 2', 'S: {s}'])
 
 
 class Figs:

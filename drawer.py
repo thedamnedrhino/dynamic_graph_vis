@@ -47,11 +47,13 @@ class DynamicCanvas:
 		plt.waitforbuttonpress()
 
 class SubplotCanvas(DynamicCanvas):
-	def __init__(self, drawer, nrows, ncols):
+	def __init__(self, drawer, nrows, ncols, basesize=3, fontsize=8):
 		super(type(self), self).__init__(drawer)
 		self.nrows = nrows
 		self.ncols = ncols
 		self.i = 1
+		self.basesize = basesize
+		self.fontsize = fontsize
 
 	def start(self):
 		self.figure()
@@ -66,11 +68,13 @@ class SubplotCanvas(DynamicCanvas):
 		plt.show()
 
 	def figure(self):
-		base = 5
-		plt.figure(figsize=(self.nrows*base, self.ncols*base))
+		plt.rc('font', size=self.fontsize)
+		plt.figure(figsize=(self.nrows*self.basesize, self.ncols*self.basesize))
+
 
 	def subplot(self):
 		plt.subplot(self.nrows, self.ncols, self.i)
+		plt.text(-1, 0.95, str(self.i), bbox={'facecolor': 'powderblue'})
 		self.i += 1
 
 	def draw(self):
@@ -80,7 +84,14 @@ class DynamicDrawer:
 	INVISIBLE = 'w'
 	GREY = '0.5'
 
-	def __init__(self, base_graph, dynamic=True, pos=None):
+	ATTRIBUTE_MAP = {
+			'threshold': 't',
+			'lambda': 'λ',
+			'receiving': 'in',
+			'remaining_lambda': 'rλ',
+			}
+
+	def __init__(self, base_graph, dynamic=True, pos=None, displayed_attributes=['threshold',],  figure_texts=[]):
 		self.graph = base_graph
 		self.dynamic = dynamic
 		self.old_graph = None
@@ -97,11 +108,14 @@ class DynamicDrawer:
 		self.active_node_color = 'g'
 		self.inactive_node_color = type(self).GREY
 		self.textboxes = []
+		self.displayed_attributes = displayed_attributes
+		self.figure_texts = figure_texts
 
 	def start(self):
 		self.draw_nodes()
 		self.draw_node_attributes()
 		self.draw_initial_edges()
+		self.draw_figure_texts()
 
 	def draw_initial_edges(self):
 		self.draw_base()
@@ -123,6 +137,11 @@ class DynamicDrawer:
 		if self.dynamic:
 			self.clear_figure_texts()
 		self.draw_node_attributes()
+		self.draw_figure_texts()
+
+	def draw_figure_texts(self):
+		print(self.figure_texts)
+		plt.text(1, 1, "\n".join(self.figure_texts), bbox={'facecolor': 'wheat',})
 
 	def clear_figure_texts(self):
 		for t in self.textboxes:
@@ -141,10 +160,16 @@ class DynamicDrawer:
 	def draw_node_attributes(self):
 		for node in self.nodes():
 			attrs = node.get_displayed_attributes()
+			attrs = {type(self).ATTRIBUTE_MAP[name]: value for name, value in attrs.items() if name in self.displayed_attributes}
 			# attrs: [(attr_name, attr_val)]
-			attr_text = "\n".join([": ".join(a) for a in attrs])
+			attr_text = "\n".join(["=".join(a) for a in attrs.items()])
 			x, y = self.pos[node.l]
-			box = plt.text(x+0.1, y+0.1, s=attr_text, bbox=dict(facecolor='wheat', alpha=0.5),verticalalignment='center')
+			# x = x + 0.1 if x < 0.8 else x - 0.3
+			# y = y + 0.2 if y < 0.8 else y - 0.2
+			x = x + 0.1
+			y = y + 0.2
+			box = plt.text(x, y, s=attr_text, bbox=dict(facecolor='wheat', alpha=0.5, fill=False),verticalalignment='center')
+			#box = plt.text(x+0.1, y+0.1, s=attr_text, verticalalignment='center')
 			self.textboxes.append(box)
 
 	def draw_node_labels(self):

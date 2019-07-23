@@ -1,15 +1,16 @@
 import drawer
 
 class VisualInterfaceFactory:
-	def create(self, graph, n=10, dynamic=False, edge_adds=[], edge_deletes=[], display_mode='dynamic'):
-		return VisualInterface(self.create_canvas(graph, display_mode=display_mode, steps=n, dynamic=dynamic), graph, edge_adds=edge_adds, edge_deletes=edge_deletes, n=n, dynamic=dynamic)
+	def create(self, graph, n=10, dynamic=False, edge_adds=[], edge_deletes=[], display_mode='dynamic', figure_texts=[]):
+		return VisualInterface(self.create_canvas(graph, display_mode=display_mode, steps=n, dynamic=dynamic, figure_texts=figure_texts), graph, edge_adds=edge_adds, edge_deletes=edge_deletes, n=n, dynamic=dynamic)
 
-	def create_canvas(self, graph, display_mode, steps, dynamic=False):
-		d = self.create_drawer(graph, dynamic=dynamic)
+	def create_canvas(self, graph, display_mode, steps, dynamic=False, figure_texts=[]):
+		d = self.create_drawer(graph, dynamic=dynamic, figure_texts=figure_texts)
 		return drawer.SubplotCanvas(d, steps//2 + (steps % 2), 2) if 'subplot' in display_mode else drawer.DynamicCanvas(d)
 
-	def create_drawer(self, graph, dynamic=False):
-		return drawer.DynamicSubscriptionDrawer(graph, dynamic=dynamic)
+	def create_drawer(self, graph, dynamic=False, figure_texts=[]):
+		print(figure_texts)
+		return drawer.DynamicSubscriptionDrawer(graph, dynamic=dynamic, figure_texts=figure_texts)
 
 
 class VisualInterface:
