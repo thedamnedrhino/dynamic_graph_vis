@@ -48,22 +48,33 @@ class DynamicCanvas:
 		plt.waitforbuttonpress()
 
 class SubplotCanvas(DynamicCanvas):
-	def __init__(self, drawer, nrows, ncols, basesize=3, fontsize=8):
+	def __init__(self, drawer, nrows, ncols, basesize=3, fontsize=8, callbacks={}):
 		super(type(self), self).__init__(drawer)
 		self.nrows = nrows
 		self.ncols = ncols
 		self.i = 1
 		self.basesize = basesize
 		self.fontsize = fontsize
+		self.callbacks = callbacks
+		self.graph = None
 
-	def start(self):
+	def start(self, graph, pos=None):
+		self.graph = graph
 		self.figure()
 		self.subplot()
-		self.drawer.start()
+		self.drawer.start(graph, pos)
+		self.callback()
 
 	def step(self, new_graph, adds, deletes):
+		self.i += 1
+		self.graph = new_graph
 		self.subplot()
 		self.drawer.step(new_graph, adds, deletes)
+		self.callback()
+
+	def callback(self):
+		if self.i in self.callbacks:
+			self.callbacks[self.i](self.drawer, self.graph)
 
 	def finish(self):
 		plt.show()
@@ -78,7 +89,6 @@ class SubplotCanvas(DynamicCanvas):
 		plt.xlim(-1.1, 1.1)
 		plt.ylim(-1.3, 1.2)
 		plt.text(-1.065, 0.95, str(self.i), bbox={'facecolor': 'powderblue'})
-		self.i += 1
 
 	def draw(self):
 		plt.draw()
@@ -87,6 +97,8 @@ class DynamicDrawer:
 	INVISIBLE = 'w'
 	GREY = '0.5'
 
+	COLORS = {'red': 'r'}
+
 	ATTRIBUTE_MAP = {
 			'threshold': 't',
 			'lambda': 'λ',
@@ -94,18 +106,15 @@ class DynamicDrawer:
 			'remaining_lambda': 'rλ',
 			}
 
-	def __init__(self, base_graph, dynamic=True, pos=None, displayed_attributes=['threshold', 'remaining_lambda', 'lambda'],  figure_texts=[]):
-		self.graph = base_graph
+	def __init__(self, dynamic=True, displayed_attributes=['threshold', 'remaining_lambda', 'lambda'],  figure_texts=[]):
 		self.dynamic = dynamic
+		self.graph = None
 		self.old_graph = None
-		self.is_directed = self.graph.is_directed()
-		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
-		if self.is_directed:
-			self.nx_graph = self.nx_graph.to_directed()
+		self.nx_graph = None
+		self.is_directed = None
 		#self.pos = nx.spring_layout(self.nx_graph)
 		# pos = pos if not pos is None else nx.spring_layout
 		# self.pos = pos(self.nx_graph)
-		self.pos = pos if not pos is None else nx.spring_layout(self.nx_graph)
 		self.edge_color = 'b'
 		self.uni_color = 'r'
 		self.bi_color = self.edge_color
@@ -117,8 +126,18 @@ class DynamicDrawer:
 		self.ATTRIBUTE_MAP = collections.defaultdict(lambda x: x)
 		self.ATTRIBUTE_MAP.update(type(self).ATTRIBUTE_MAP)
 		self.displayed_attributes = ['threshold', 'receiving']
+		self.colors = type(self).COLORS
 
-	def start(self):
+	def init_graph(self, graph, pos=None):
+		self.graph = graph
+		self.is_directed = self.graph.is_directed()
+		self.nx_graph = nx.complete_graph([node.l for node in self.graph.get_nodes()])
+		if self.is_directed:
+			self.nx_graph = self.nx_graph.to_directed()
+		self.pos = pos if not pos is None else nx.spring_layout(self.nx_graph)
+
+	def start(self, graph, pos=None):
+		self.init_graph(graph, pos)
 		self.draw_nodes()
 		self.draw_node_attributes()
 		self.draw_initial_edges()
@@ -159,22 +178,24 @@ class DynamicDrawer:
 		for node in self.nodes():
 			l = active if node.active else inactive
 			l.append(node.l)
-		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=active, node_color=self.active_node_color)
-		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=inactive, node_color=self.inactive_node_color)
+		self._draw_nx_nodes(nodelist=active, node_color=self.active_node_color)
+		self._draw_nx_nodes(nodelist=inactive, node_color=self.inactive_node_color)
 		self.draw_node_labels()
 
+	def _draw_nx_nodes(self, nodelist, node_color):
+		nx.draw_networkx_nodes(self.nx_graph, self.pos, nodelist=nodelist, node_color=node_color)
 
 	def draw_node_attributes(self):
 		for node in self.nodes():
 			attrs = node.get_displayed_attributes()
 			attrs = {self.ATTRIBUTE_MAP[name]: value for name, value in attrs.items() if self.displayed_attributes == 'all' or name in self.displayed_attributes}
 			# attrs: [(attr_name, attr_val)]
-			attr_text = "\n".join(["=".join(a) for a in attrs.items()])
+			attr_text = "\n".join([":".join(a) for a in attrs.items()])
 			x, y = self.pos[node.l]
 			# x = x + 0.1 if x < 0.8 else x - 0.3
 			# y = y + 0.2 if y < 0.8 else y - 0.2
 			x = x - 0.05
-			y = y + 0.35
+			y = y + len(attrs.keys())*0.2
 			#box = plt.text(x, y, s=attr_text, bbox=dict(facecolor='wheat', alpha=0.5, fill=False),verticalalignment='center')
 			box = plt.text(x, y, s=attr_text, verticalalignment='center')
 			self.textboxes.append(box)
