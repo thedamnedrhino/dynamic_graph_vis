@@ -166,7 +166,7 @@ class SubscriptionNode(Node):
 
 	def send(self):
 		super(type(self), self).send()
-		self.time += 1
+		self.time += 1 if self.active else 0
 
 	def receive(self):
 		if self.time >= self.lamb:
@@ -177,7 +177,7 @@ class SubscriptionNode(Node):
 
 	def remaining_subscription(self):
 		if not self.active:
-			return 0
+			return -10
 		return self.lamb - self.time
 
 	def get_displayed_attributes(self):
@@ -211,7 +211,9 @@ class Edge:
 		self.v.add_in_edge(self)
 		if not self.directed:
 			self.u.add_in_edge(self)
-			self.v.add_in_edge(self)
+			self.v.add_out_edge(self)
+		else:
+			raise Exception()
 
 	def delete(self):
 		# not working for undirected

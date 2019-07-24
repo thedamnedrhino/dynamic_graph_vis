@@ -39,8 +39,8 @@ class Figs:
 	def DTM1(self):
 		draw_from_edges(('a', 'c'), ('b', 'c'))
 	def SM1(self):
-		nodes = {'s': 3, 'i': 1, 'ii': 1, 'Y': 1, 'X': 1, 'a': 2, 'b': 1, 'c': 1, 'I': 2, 'II': 2}
-		edges = [('s', 'I'), ('s', 'II'), ('s', 'X'), ('s', 'i'), ('i', 'ii'), ('ii', 'Y'), ('Y', 'a'), ('X', 'a'), ('a', 'b'), ('b', 'c'), ('c', 'a')]
+		nodes = {'s': 3, 'i': 1, 'ii': 1, 'Y': 2, 'X': 1, 'a': 2, 'b': 1, 'c': 1, 'I': 2, 'II': 2}
+		edges = [('s', 'I'), ('s', 'II'), ('s', 'X'), ('s', 'i'), ('ii', 'i'), ('ii', 'Y'), ('Y', 'a'), ('X', 'a'), ('a', 'b'), ('b', 'c'), ('c', 'a'), ('Y', 'X'), ('i', 'Y')]
 		zerox = 0
 		sx = zerox
 		sy = -0.8
@@ -50,17 +50,18 @@ class Figs:
 		ay = sy + 6*dy
 		positions = {
 				's': (sx, sy),
-				'I': (sx-dx, sy-dy),
-				'II': (sx+dx, sy-dy),
-				'i': (sx-dx, sy+dy),
+				'I': (sx-3*dx, sy-dy),
+				'II': (sx+3*dx, sy-dy),
+				'i': (sx-3*dx, sy+dy),
 				'ii': (sx-2*dx, sy+2*dy),
 				'Y': (sx-3*dx, sy+3*dy),
 				'X': (sx+3*dx, sy+3*dy),
 				'a': (ax, ay),
-				'b': (ax-dx, ay+dy),
-				'c': (ax+dx, ay+dy)
+				'b': (ax-1.2*dx, ay+dy),
+				'c': (ax+1.2*dx, ay+dy)
 				}
 		display_subscription_graph(2, nodes, ['s', 'X'], edges, STEPS, positions=positions)
+		display_subscription_graph(2, nodes, ['ii'], edges, STEPS, positions=positions)
 
 if __name__== '__main__':
 	f = Figs()

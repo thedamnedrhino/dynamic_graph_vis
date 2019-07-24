@@ -1,4 +1,5 @@
 import random
+import collections
 from matplotlib.pyplot import pause
 from matplotlib import pyplot as plt
 import networkx as nx
@@ -68,13 +69,15 @@ class SubplotCanvas(DynamicCanvas):
 		plt.show()
 
 	def figure(self):
-		plt.rc('font', size=self.fontsize)
+		plt.rc('font', size=self.fontsize, weight='bold')
 		plt.figure(figsize=(self.nrows*self.basesize, self.ncols*self.basesize))
 
 
 	def subplot(self):
 		plt.subplot(self.nrows, self.ncols, self.i)
-		plt.text(-1, 0.95, str(self.i), bbox={'facecolor': 'powderblue'})
+		plt.xlim(-1.1, 1.1)
+		plt.ylim(-1.3, 1.2)
+		plt.text(-1.065, 0.95, str(self.i), bbox={'facecolor': 'powderblue'})
 		self.i += 1
 
 	def draw(self):
@@ -91,7 +94,7 @@ class DynamicDrawer:
 			'remaining_lambda': 'rλ',
 			}
 
-	def __init__(self, base_graph, dynamic=True, pos=None, displayed_attributes=['threshold',],  figure_texts=[]):
+	def __init__(self, base_graph, dynamic=True, pos=None, displayed_attributes=['threshold', 'remaining_lambda', 'lambda'],  figure_texts=[]):
 		self.graph = base_graph
 		self.dynamic = dynamic
 		self.old_graph = None
@@ -111,6 +114,9 @@ class DynamicDrawer:
 		self.textboxes = []
 		self.displayed_attributes = displayed_attributes
 		self.figure_texts = figure_texts
+		self.ATTRIBUTE_MAP = collections.defaultdict(lambda x: x)
+		self.ATTRIBUTE_MAP.update(type(self).ATTRIBUTE_MAP)
+		self.displayed_attributes = ['threshold', 'receiving']
 
 	def start(self):
 		self.draw_nodes()
@@ -137,10 +143,10 @@ class DynamicDrawer:
 	def finalize(self, graph, adds, deletes):
 		if self.dynamic:
 			self.clear_figure_texts()
-			self.draw_node_attributes()
+		self.draw_node_attributes()
 
 	def draw_figure_texts(self):
-		plt.text(1, 1, "\n".join(self.figure_texts), bbox={'facecolor': 'wheat',})
+		plt.text(1-0.1, 1-0.1, "\n".join(self.figure_texts), bbox={'facecolor': 'wheat',})
 
 	def clear_figure_texts(self):
 		for t in self.textboxes:
@@ -159,16 +165,16 @@ class DynamicDrawer:
 	def draw_node_attributes(self):
 		for node in self.nodes():
 			attrs = node.get_displayed_attributes()
-			attrs = {type(self).ATTRIBUTE_MAP[name]: value for name, value in attrs.items() if name in self.displayed_attributes}
+			attrs = {self.ATTRIBUTE_MAP[name]: value for name, value in attrs.items() if self.displayed_attributes == 'all' or name in self.displayed_attributes}
 			# attrs: [(attr_name, attr_val)]
 			attr_text = "\n".join(["=".join(a) for a in attrs.items()])
 			x, y = self.pos[node.l]
 			# x = x + 0.1 if x < 0.8 else x - 0.3
 			# y = y + 0.2 if y < 0.8 else y - 0.2
-			x = x + 0.08
-			y = y + 0.2
-			box = plt.text(x, y, s=attr_text, bbox=dict(facecolor='wheat', alpha=0.5, fill=False),verticalalignment='center')
-			#box = plt.text(x+0.1, y+0.1, s=attr_text, verticalalignment='center')
+			x = x - 0.05
+			y = y + 0.35
+			#box = plt.text(x, y, s=attr_text, bbox=dict(facecolor='wheat', alpha=0.5, fill=False),verticalalignment='center')
+			box = plt.text(x, y, s=attr_text, verticalalignment='center')
 			self.textboxes.append(box)
 
 	def draw_node_labels(self):
