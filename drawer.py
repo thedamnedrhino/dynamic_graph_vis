@@ -146,7 +146,9 @@ class DynamicDrawer:
 		self.draw_node_attributes()
 
 	def draw_figure_texts(self):
-		plt.text(1-0.1, 1-0.1, "\n".join(self.figure_texts), bbox={'facecolor': 'wheat',})
+		# plt.text(1-0.1, 1-0.1, "\n".join(self.figure_texts), bbox={'facecolor': 'wheat',})
+		plt.text(-1.065, 1.4, "\n".join(self.figure_texts), bbox={'facecolor': 'wheat',})
+
 
 	def clear_figure_texts(self):
 		for t in self.textboxes:
